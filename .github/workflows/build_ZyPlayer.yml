@@ -1,0 +1,33 @@
+name: build_ZyPlayer
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pull code
+        run: git clone https://github.com/Hiram-Wong/ZyPlayer
+
+      - name: Build
+        uses: karma-sun/action-electron-builder@v1.6.0
+        with:
+          github_token: ${{ secrets.github_token }}
+          package_root: "./ZyPlayer"
+          args: "--dir"
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./ZyPlayer/dist/*-unpacked/resources
