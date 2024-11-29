@@ -1,0 +1,33 @@
+name: build_tvbox_mp
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Build
+        shell: pwsh
+        env:
+          SRC_HOST_BASE: ${{ secrets.SRC_HOST_BASE }}
+        run: |
+          aria2c -d . $env:SRC_HOST_BASE/TV-Multiplatform.zip
+          7z x TV-Multiplatform.zip
+          cd TV-Multiplatform
+          gradle packageReleaseUberJarForCurrentOS
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./TV-Multiplatform/composeApp/build/compose/jars

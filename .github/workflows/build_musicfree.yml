@@ -1,0 +1,30 @@
+name: build_musicfree
+on: 
+    workflow_dispatch:
+jobs:
+    build-windows: 
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 20
+            - shell: pwsh
+              env:
+                SRC_HOST_BASE: ${{ secrets.SRC_HOST_BASE }}
+              run: |
+                aria2c -d . $env:SRC_HOST_BASE/MusicFreeDesktop.zip
+                7z x MusicFreeDesktop.zip
+            - run: |
+                npm install -g @electron/asar
+                cd MusicFreeDesktop
+                npm install
+                npm run package
+                cd out/MusicFree-win32-x64/resources
+                move res app/
+                asar pack app app.asar --unpack-dir "node_modules/sharp"
+            - name: Upload
+              uses: actions/upload-artifact@v4
+              with:
+                  path: ./MusicFreeDesktop/out/MusicFree-win32-x64
+                  include-hidden-files: true
