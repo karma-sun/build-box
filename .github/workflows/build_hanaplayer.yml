@@ -1,0 +1,29 @@
+name: build_hanaplayer
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get package and Build
+        shell: pwsh
+        env:
+          SRC_HOST_BASE: ${{ secrets.SRC_HOST_BASE }}
+        run: |
+          aria2c -d . $env:SRC_HOST_BASE/hanaplayer.zip
+          7z x hanaplayer.zip
+          cd hana-player
+          rustup target add x86_64-pc-windows-msvc
+          cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./hana-player/target/x86_64-pc-windows-msvc/release/hana-player.exe
